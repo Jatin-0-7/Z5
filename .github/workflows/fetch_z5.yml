@@ -1,26 +1,26 @@
-name: Fetch Z5 M3U Every 2 Hours
+name: Fetch Z5 M3U
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # Runs every 2 hours
-  workflow_dispatch:       # Allows manual trigger from GitHub UI
+    - cron: "0 */2 * * *"  # Every 2 hours
+  workflow_dispatch:       # Also allow manual run
 
 jobs:
-  fetch-and-update:
+  fetch-z5:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Fetch z5.m3u from Alex's GitHub
+      - name: Download z5.m3u
         run: |
-          curl -L https://raw.githubusercontent.com/alex4528/m3u/main/z5.m3u -o z5.m3u
+          curl -sL https://raw.githubusercontent.com/alex4528/m3u/refs/heads/main/z5.m3u -o z5.m3u
 
       - name: Commit and Push if Changed
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add z5.m3u
-          git commit -m "Updated z5.m3u from alex4528" || echo "No changes to commit"
-          git push
+          git diff --cached --quiet || git commit -m "Update z5.m3u from alex4528"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
